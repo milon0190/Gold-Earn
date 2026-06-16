@@ -3029,106 +3029,87 @@
                         </div>
                     </div>
                     
-                    <!-- bKash Payment Form -->
+                                        <!-- bKash Payment Form -->
                     <div id="bkash-payment-form" style="display: none;">
                         <div class="payment-info-box" style="background: #f9eef5; border-left-color: #e2136e;">
-                            <h4 style="color: #e2136e; margin-bottom: 15px;"><i class="fas fa-info-circle"></i> bKash এ পেমেন্ট করুন</h4>
-                            
-                            <div class="payment-info-item">
-                                <span class="info-label">পরিমাণ:</span>
-                                <span class="info-value">20 TK</span>
-                            </div>
-                            
-                            <div class="payment-info-item">
-                                <span class="info-label">bKash নম্বর:</span>
-                                <div class="copyable-field">
-                                    <input type="text" id="bkash-number" value="01944015615" readonly>
-                                    <button class="copy-btn" data-copy="bkash-number">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="payment-info-item">
-                                <span class="info-label">ট্রানজেকশন আইডি:</span>
-                                <input type="text" id="bkash-trx-id" class="form-control" placeholder="bKash ট্রানজেকশন আইডি লিখুন">
+                            <h4 style="color: #e2136e; margin-bottom: 15px;"><i class="fas fa-info-circle"></i> bKash পার্সোনাল ক্যাশ-ইন / সেন্ড মানি</h4>
+                            <p style="margin-bottom: 10px; color: #333;">নিচের নম্বরে <b>২০ টাকা</b> সেন্ড মানি বা ক্যাশ-ইন করুন:</p>
+                            <div class="copyable-field">
+                                <input type="text" id="bkash-number" value="017XXXXXXXX" readonly>
+                                <button class="copy-btn" id="copy-bkash-btn"><i class="fas fa-copy"></i> কপি</button>
                             </div>
                         </div>
-                        
-                        <button id="submit-bkash-payment" class="action-btn" style="width: 100%; margin-top: 20px; background: linear-gradient(135deg, #e2136e, #b21057);">
-                            <i class="fas fa-paper-plane"></i> পেমেন্ট ভেরিফাই করুন
-                        </button>
+
+                        <form id="bkash-activation-form">
+                            <div class="form-group">
+                                <label for="bkash-sender-number">যে নম্বর থেকে টাকা পাঠিয়েছেন</label>
+                                <input type="text" id="bkash-sender-number" class="form-control" required placeholder="বিকাশ অ্যাকাউন্ট নম্বর">
+                            </div>
+                            <div class="form-group">
+                                <label for="bkash-trxid">Transaction ID (TrxID)</label>
+                                <input type="text" id="bkash-trxid" class="form-control" required placeholder="যেমন: 8N7X6W5V">
+                            </div>
+                            <button type="submit" class="action-btn" style="width: 100%; background: #e2136e;">
+                                <i class="fas fa-check-circle"></i> বিকাশ পেমেন্ট ভেরিফাই করুন
+                            </button>
+                        </form>
                     </div>
-                    
+
                     <!-- Nagad Payment Form -->
-                    <div id="nagad-payment-form" style="display: none;">
-                        <div class="payment-info-box" style="background: #fcebec; border-left-color: #e30f2b;">
-                            <h4 style="color: #e30f2b; margin-bottom: 15px;"><i class="fas fa-info-circle"></i> Nagad এ পেমেন্ট করুন</h4>
-                            
-                            <div class="payment-info-item">
-                                <span class="info-label">পরিমাণ:</span>
-                                <span class="info-value">20 TK</span>
-                            </div>
-                            
-                            <div class="payment-info-item">
-                                <span class="info-label">Nagad নম্বর:</span>
-                                <div class="copyable-field">
-                                    <input type="text" id="nagad-number" value="01944015615" readonly>
-                                    <button class="copy-btn" data-copy="nagad-number">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="payment-info-item">
-                                <label>ট্রানজেকশন আইডি:</label>
-                                <input type="text" id="nagad-trx-id" class="form-control" placeholder="Nagad ট্রানজেকশন আইডি লিখুন">
+                    <div id="nagad-payment-form" style="display: none; margin-top: 20px;">
+                        <div class="payment-info-box" style="background: #fdf1f2; border-left-color: #e30f2b;">
+                            <h4 style="color: #e30f2b; margin-bottom: 15px;"><i class="fas fa-info-circle"></i> Nagad পার্সোনাল ক্যাশ-ইন / সেন্ড মানি</h4>
+                            <p style="margin-bottom: 10px; color: #333;">নিচের নম্বরে <b>২০ টাকা</b> সেন্ড মানি বা ক্যাশ-ইন করুন:</p>
+                            <div class="copyable-field">
+                                <input type="text" id="nagad-number" value="019XXXXXXXX" readonly>
+                                <button class="copy-btn" id="copy-nagad-btn" style="background: #e30f2b;"><i class="fas fa-copy"></i> কপি</button>
                             </div>
                         </div>
-                        
-                        <button id="submit-nagad-payment" class="action-btn" style="width: 100%; margin-top: 20px; background: linear-gradient(135deg, #e30f2b, #b90d22);">
-                            <i class="fas fa-paper-plane"></i> পেমেন্ট ভেরিফাই করুন
-                        </button>
+
+                        <form id="nagad-activation-form">
+                            <div class="form-group">
+                                <label for="nagad-sender-number">যে নম্বর থেকে টাকা পাঠিয়েছেন</label>
+                                <input type="text" id="nagad-sender-number" class="form-control" required placeholder="নগদ অ্যাকাউন্ট নম্বর">
+                            </div>
+                            <div class="form-group">
+                                <label for="nagad-trxid">Transaction ID (TrxID)</label>
+                                <input type="text" id="nagad-trxid" class="form-control" required placeholder="যেমন: 7M6X5W4V">
+                            </div>
+                            <button type="submit" class="action-btn" style="width: 100%; background: #e30f2b;">
+                                <i class="fas fa-check-circle"></i> নগদ পেমেন্ট ভেরিফাই করুন
+                            </button>
+                        </form>
                     </div>
-                    
-                    <!-- Payment Instructions -->
-                    <div class="payment-info-box" style="margin-top: 25px;">
-                        <h4 style="color: var(--primary-color); margin-bottom: 15px;"><i class="fas fa-graduation-cap"></i> কিভাবে পেমেন্ট করবেন:</h4>
-                        <ol style="padding-left: 20px; color: var(--text-secondary-light);">
-                            <li style="margin-bottom: 10px;">উপরের পেমেন্ট মেথড নির্বাচন করুন</li>
-                            <li style="margin-bottom: 10px;">প্রদর্শিত নম্বরে নির্দিষ্ট পরিমাণ পাঠান</li>
-                            <li style="margin-bottom: 10px;">ট্রানজেকশন আইডি সংগ্রহ করুন</li>
-                            <li style="margin-bottom: 10px;">ট্রানজেকশন আইডি ফর্মে লিখুন</li>
-                            <li>"পেমেন্ট ভেরিফাই করুন" বাটনে ক্লিক করুন</li>
-                        </ol>
-                        <p style="margin-top: 15px; color: var(--text-secondary-light); font-size: 0.9rem;">
-                            <i class="fas fa-clock"></i> ভেরিফিকেশনে সাধারণত ৫-১০ মিনিট সময় লাগে
-                        </p>
-                    </div>
+
                 </div>
             </div>
         </main>
-        
+
         <!-- ফুটার নেভিগেশন -->
-        <footer class="footer-nav">
+        <nav class="footer-nav">
             <a href="#" class="footer-nav-item active" data-page="home-page">
                 <i class="fas fa-home"></i>
                 <span>হোম</span>
             </a>
             <a href="#" class="footer-nav-item" data-page="micro-job-page">
                 <i class="fas fa-briefcase"></i>
-                <span>মাইক্রো জব</span>
+                <span>জবস</span>
             </a>
             <a href="#" class="footer-nav-item" data-page="ad-page">
                 <i class="fas fa-ad"></i>
                 <span>বিজ্ঞাপন</span>
             </a>
+            <a href="#" class="footer-nav-item" data-page="referral-page">
+                <i class="fas fa-user-friends"></i>
+                <span>রেফার</span>
+            </a>
             <a href="#" class="footer-nav-item" data-page="withdraw-page">
                 <i class="fas fa-wallet"></i>
                 <span>উত্তোলন</span>
             </a>
-        </footer>
+        </nav>
     </div>
+
 
     <!-- Firebase এবং Telegram SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
