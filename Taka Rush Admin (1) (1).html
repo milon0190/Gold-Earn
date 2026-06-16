@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            /* Orange Color Palette */
+            --primary: #FF9700; /* Orange for buttons */
+            --primary-light: #FFE4C2; /* Light orange for backgrounds */
+            --primary-dark: #E67E00; /* Darker orange for hover states */
+            --secondary: #FF9700; /* Same as primary for consistency */
+            --light: #FFFFFF; /* White background */
+            --surface: #FFFFFF; /* White surface */
+            --text-primary: #333333; /* Dark text */
+            --text-secondary: #666666; /* Secondary text */
+            --border: rgba(255, 151, 0, 0.4); /* Orange border */
+            --shadow: 0 2px 10px rgba(0,0,0,0.08); /* Light shadow */
+            
+            /* Platform Colors */
+            --facebook: #3b5998;
+            --instagram: #E1306C;
+            --gmail: #DB4437;
+            --niva: #FFD700;
+            --ns-coin: #4CAF50;
+            
+            /* Status Colors */
+            --success: #27AE60;
+            --danger: #C0392B;
+            --pending: #FF9800;
+            --info: #2196F3;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light); color: var(--text-primary); }
+        #app-container { transition: filter 0.3s; }
+        
+        #top-bar {
+            background-color: var(--surface); color: var(--text-primary); padding: 0 15px;
+            display: flex; align-items: center; height: 60px;
+            position: sticky; top: 0; z-index: 1000;
+            box-shadow: var(--shadow);
+            border-bottom: 2px solid var(--border);
+        }
+        #menu-toggle { background: none; border: none; color: var(--primary); font-size: 1.5rem; cursor: pointer; padding: 8px; border-radius: 5px; }
+        #menu-toggle:hover { background-color: var(--primary-light); }
+        #page-title { font-size: 1.2rem; margin-left: 15px; font-weight: 600; color: var(--primary); }
+
+        #sidebar {
+            position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+            background-color: var(--surface); color: var(--text-primary); z-index: 2000;
+            transform: translateX(-100%); transition: transform 0.3s ease-in-out;
+            display: flex; flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+            border-right: 2px solid var(--border);
+        }
+        #sidebar.open { transform: translateX(0); }
+        #sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid var(--border); }
+        #sidebar-header h2 { color: var(--primary); font-weight: 700; }
+        #sidebar-header .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; cursor: pointer; color: var(--primary); padding: 5px; border-radius: 5px; }
+        #sidebar-header .close-btn:hover { background-color: var(--primary-light); }
+        .nav-menu { list-style: none; padding: 0; margin: 0; }
+        .nav-menu li { padding: 15px 20px; cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
+        .nav-menu li:hover, .nav-menu li.active { background-color: var(--primary-light); border-left-color: var(--primary); color: var(--primary); }
+        .nav-menu li i { margin-right: 12px; width: 20px; text-align: center; color: var(--primary); }
+        #logout-btn { margin-top: auto; }
+
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); z-index: 1999; display: none;
+        }
+        #overlay.show { display: block; }
+        
+        #main-content { padding: 20px; background-color: var(--light); }
+        .page { display: none; } .page.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .card { 
+            background-color: var(--surface); 
+            border-radius: 8px; 
+            padding: 20px; 
+            box-shadow: var(--shadow); 
+            margin-bottom: 20px; 
+            border: 2px solid var(--border);
+        }
+        h1, h3, h4 { color: var(--primary); margin-bottom: 15px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        thead { display: none; }
+        tr { display: block; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 5px; padding: 10px; background-color: var(--surface); }
+        td { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
+        td:last-child { border-bottom: none; }
+        td::before { content: attr(data-label); font-weight: bold; margin-right: 10px; color: var(--primary); }
+        .action-buttons { text-align: right; width: 100%; }
+        .action-btn { 
+            padding: 8px 12px; 
+            border: none; 
+            border-radius: 5px; 
+            color: white; 
+            cursor: pointer; 
+            margin: 2px; 
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; text-align: left; color: var(--text-primary); }
+        .form-group input, .form-group textarea, .form-group select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid var(--border); 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+            font-family: 'Poppins', sans-serif; 
+            background-color: var(--surface);
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 151, 0, 0.3);
+        }
+        .btn-success { background-color: var(--success); } 
+        .btn-danger { background-color: var(--danger); } 
+        .btn-primary { background-color: var(--primary); }
+        .btn-facebook { background-color: var(--facebook); }
+        .btn-instagram { background-color: var(--instagram); }
+        .btn-gmail { background-color: var(--gmail); }
+        .btn-niva { background-color: var(--niva); color: #333; }
+        .btn-ns { background-color: var(--ns-coin); }
+        .btn-primary:hover { background-color: var(--primary-dark); border-color: var(--primary-dark); }
+        .dynamic-item-list { list-style: none; padding-left: 0; }
+        .dynamic-item-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); }
+        .withdraw-method-group { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+
+        /* Platform Badges */
+        .platform-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-facebook { background-color: rgba(59, 89, 152, 0.1); color: var(--facebook); border: 1px solid var(--facebook); }
+        .badge-instagram { background-color: rgba(225, 48, 108, 0.1); color: var(--instagram); border: 1px solid var(--instagram); }
+        .badge-gmail { background-color: rgba(219, 68, 55, 0.1); color: var(--gmail); border: 1px solid var(--gmail); }
+        .badge-niva { background-color: rgba(255, 215, 0, 0.1); color: var(--niva); border: 1px solid var(--niva); }
+        .badge-ns { background-color: rgba(76, 175, 80, 0.1); color: var(--ns-coin); border: 1px solid var(--ns-coin); }
+
+        /* Sell Card */
+        .sell-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid var(--border);
+        }
+        
+        .sell-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .sell-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .facebook-icon { background: linear-gradient(135deg, var(--facebook), #8b9dc3); }
+        .instagram-icon { background: linear-gradient(135deg, var(--instagram), #F77737); }
+        .gmail-icon { background: linear-gradient(135deg, var(--gmail), #4285F4); }
+        .niva-icon { background: linear-gradient(135deg, var(--niva), #FFA500); }
+        .ns-icon { background: linear-gradient(135deg, var(--ns-coin), #81C784); }
+        
+        .sell-info {
+            flex: 1;
+        }
+        
+        .sell-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.2rem;
+        }
+        
+        .sell-info p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Image Preview */
+        .image-preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+        .image-preview { width: 100px; height: 100px; border-radius: 5px; overflow: hidden; border: 2px solid var(--border); }
+        .image-preview img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); }
+        .modal-content { margin: auto; display: block; max-width: 90%; max-height: 90%; }
+        .close-modal { position: absolute; top: 15px; right: 35px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
+
+        /* Payment Settings */
+        .payment-method-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid var(--border);
+        }
+        
+        .payment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .payment-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .bkash-icon { background: linear-gradient(135deg, #d42b7b, #e91e63); }
+        .nagad-icon { background: linear-gradient(135deg, #E11C2A, #f44336); }
+
+        @media (min-width: 768px) {
+            #app-container { display: flex; }
+            #top-bar { display: none; }
+            #sidebar { position: static; transform: translateX(0); width: 250px; height: 100vh; }
+            #sidebar-header .close-btn { display: none; }
+            #main-content { flex-grow: 1; padding: 30px; }
+            thead { display: table-header-group; background-color: var(--primary-light); }
+            tr { display: table-row; margin-bottom: 0; border: none; padding: 0; background-color: transparent; }
+            td { display: table-cell; padding: 12px; border-bottom: 1px solid var(--border); }
+            td::before { display: none; }
+            .action-buttons { text-align: left; }
+        }
+        
+        /* Submission Details */
+        .submission-details {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .submission-field {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .submission-field:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .submission-field label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .submission-field .value {
+            font-size: 1rem;
+            font-family: monospace;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            word-break: break-all;
+        }
+        
+        /* Activation Requests */
+        .activation-request {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .activation-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .activation-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .activation-field {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .activation-field label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .activation-field span {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        /* Task URL Button */
+        .task-url-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .task-url-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        /* Micro Job History Status */
+        .job-history-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-pending { background-color: rgba(255, 152, 0, 0.2); color: var(--pending); border: 1px solid var(--pending); }
+        .status-approved { background-color: rgba(39, 174, 96, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .status-rejected { background-color: rgba(192, 57, 43, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <aside id="sidebar">
+            <div>
+                <div id="sidebar-header"><h2><i class="fas fa-shield-alt"></i> Admin Panel</h2><span class="close-btn">&times;</span></div>
+                <ul class="nav-menu">
+                    <li data-page="dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+                    <li data-page="users"><i class="fas fa-users"></i> Users</li>
+                    <li data-page="sell-submissions"><i class="fas fa-shopping-cart"></i> Sell Submissions</li>
+                    <li data-page="micro-job-submissions"><i class="fas fa-briefcase"></i> Micro Job Submissions</li>
+                    <li data-page="sell-settings"><i class="fas fa-cogs"></i> Sell Settings</li>
+                    <li data-page="micro-job-settings"><i class="fas fa-tasks"></i> Micro Job Settings</li>
+                    <li data-page="withdrawals"><i class="fas fa-wallet"></i> Pending Withdrawals</li>
+                    <li data-page="history"><i class="fas fa-history"></i> Withdrawal History</li>
+                    <li data-page="payment-settings"><i class="fas fa-money-bill-wave"></i> Payment Settings</li>
+                    <li data-page="pending-activations"><i class="fas fa-user-check"></i> Pending Activations</li>
+                    <li data-page="settings"><i class="fas fa-cog"></i> App Settings</li>
+                    <li data-page="broadcast"><i class="fas fa-bullhorn"></i> Broadcast</li>
+                </ul>
+            </div>
+        </aside>
+        
+        <div id="overlay"></div>
+
+        <div id="content-wrapper" style="width: 100%;">
+            <header id="top-bar">
+                <button id="menu-toggle"><i class="fas fa-bars"></i></button>
+                <h1 id="page-title">Dashboard</h1>
+            </header>
+            <main id="main-content"></main>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6kbUSvU9MA1wCAGFf4aUFW98e0_rN1Ns",
+            authDomain: "takarush-65ded.firebaseapp.com",
+            databaseURL: "https://takarush-65ded-default-rtdb.firebaseio.com",
+            projectId: "takarush-65ded",
+            storageBucket: "takarush-65ded.firebasestorage.app",
+            messagingSenderId: "895929377739",
+            appId: "1:895929377739:web:40b0354ae6213ae71a4c4e"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        const mainContent = document.getElementById('main-content');
+        const pageTitle = document.getElementById('page-title');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const closeModal = document.querySelector('.close-modal');
+
+        // Setup image modal
+        closeModal.addEventListener('click', () => {
+            imageModal.style.display = 'none';
+        });
+
+        // Login system removed, panel loads directly.
+        
+        const renderDashboard = async () => {
+            const usersSnap = await db.ref('users').once('value');
+            const withdrawalsSnap = await db.ref('withdrawals/pending').once('value');
+            const facebookSnap = await db.ref('sellSubmissions/facebook/pending').once('value');
+            const instagramSnap = await db.ref('sellSubmissions/instagram/pending').once('value');
+            const gmailSnap = await db.ref('sellSubmissions/gmail/pending').once('value');
+            const nivaSnap = await db.ref('sellSubmissions/niva/pending').once('value');
+            const nsSnap = await db.ref('sellSubmissions/ns/pending').once('value');
+            const microJobSnap = await db.ref('microJobSubmissions/pending').once('value');
+            const activationSnap = await db.ref('activationRequests/pending').once('value');
+            
+            mainContent.innerHTML = `<div id="dashboard" class="page active">
+                <div class="card">
+                    <h3>Dashboard Overview</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 10px; color: white;">
+                            <h4>Total Users</h4>
+                            <h1 style="font-size: 2.5rem;">${usersSnap.numChildren()}</h1>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, var(--facebook), #8b9dc3); border-radius: 10px; color: white;">
+                            <h4>Facebook Submissions</h4>
+                            <h1 style="font-size: 2.5rem;">${facebookSnap.numChildren()}</h1>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, var(--instagram), #F77737); border-radius: 10px; color: white;">
+                            <h4>Instagram Submissions</h4>
+                            <h1 style="font-size: 2.5rem;">${instagramSnap.numChildren()}</h1>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, var(--gmail), #4285F4); border-radius: 10px; color: white;">
+                            <h4>Gmail Submissions</h4>
+                            <h1 style="font-size: 2.5rem;">${gmailSnap.numChildren()}</h1>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, var(--niva), #FFA500); border-radius: 10px; color: #333;">
+                            <h4>Niva Submissions</h4>
+                            <h1 style="font-size: 2.5rem;">${nivaSnap.numChildren()}</h1>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, var(--ns-coin), #81C784); border-radius: 10px; color: white;">
+                            <h4>NS Coin Submissions</h4>
+                            <h1 style="font-size: 2.5rem;">${nsSnap.numChildren()}</h1>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, var(--pending), #FFB74D); border-radius: 10px; color: white;">
+                            <h4>Micro Job Submissions</h4>
+                            <h1 style="font-size: 2.5rem;">${microJobSnap.numChildren()}</h1>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, var(--success), #4CAF50); border-radius: 10px; color: white;">
+                            <h4>Pending Withdrawals</h4>
+                            <h1 style="font-size: 2.5rem;">${withdrawalsSnap.numChildren()}</h1>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #9C27B0, #E91E63); border-radius: 10px; color: white;">
+                            <h4>Pending Activations</h4>
+                            <h1 style="font-size: 2.5rem;">${activationSnap.numChildren()}</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        };
+        
+        const renderUsers = async () => {
+            mainContent.innerHTML = '<div class="card"><h3>Loading Users...</h3></div>';
+            const snap = await db.ref('users').orderByChild('firstName').once('value'); 
+            let tableContent = '';
+            snap.forEach(child => {
+                const user = child.val();
+                const statusBadge = user.active ? 
+                    '<span style="color: var(--success); font-weight: bold;"><i class="fas fa-check-circle"></i> Active</span>' : 
+                    '<span style="color: var(--danger); font-weight: bold;"><i class="fas fa-times-circle"></i> Inactive</span>';
+                
+                tableContent += `<tr>
+                    <td data-label="User">${user.firstName || ''} ${user.lastName || ''}<br><small>${user.id}</small><br>${statusBadge}</td>
+                    <td data-label="Balance">${(user.balance || 0).toFixed(2)} TK</td>
+                    <td data-label="Referrals">${user.referrals || 0}</td>
+                    <td data-label="Actions"><div class="action-buttons">
+                        <button class="action-btn btn-primary" onclick="window.adminActions.editUserBalance('${user.id}', '${user.firstName}')">Edit Balance</button>
+                        <button class="action-btn ${user.active ? 'btn-danger' : 'btn-success'}" onclick="window.adminActions.toggleUserStatus('${user.id}', ${user.active || false})">
+                            ${user.active ? 'Deactivate' : 'Activate'}
+                        </button>
+                    </div></td>
+                </tr>`;
+            });
+            mainContent.innerHTML = `<div id="users" class="page active"><h3>All Users</h3><div class="card"><table><thead><tr><th>User</th><th>Balance</th><th>Referrals</th><th>Actions</th></tr></thead><tbody>${tableContent}</tbody></table></div></div>`;
+        };
+        
+        const renderSellSubmissions = async () => {
+            mainContent.innerHTML = '<div class="card"><h3>Loading Submissions...</h3></div>';
+            
+            const types = ['facebook', 'instagram', 'gmail', 'niva', 'ns'];
+            let allSubmissions = [];
+            
+            for (const type of types) {
+                const snap = await db.ref(`sellSubmissions/${type}/pending`).once('value');
+                snap.forEach(child => {
+                    const submission = child.val();
+                    submission.type = type;
+                    allSubmissions.push(submission);
+                });
+            }
+            
+            allSubmissions.sort((a, b) => b.timestamp - a.timestamp);
+            
+            let tableContent = '';
+            allSubmissions.forEach(sub => {
+                const badgeClass = `badge-${sub.type}`;
+                const platformName = sub.type === 'ns' ? 'NS Coin' : sub.type.charAt(0).toUpperCase() + sub.type.slice(1);
+                
+                tableContent += `<tr>
+                    <td data-label="User">
+                        <strong>${sub.userName}</strong><br>
+                        <small>${new Date(sub.timestamp).toLocaleString()}</small><br>
+                        <span class="platform-badge ${badgeClass}">${platformName}</span>
+                    </td>
+                    <td data-label="Details">
+                        ${sub.type === 'facebook' ? `
+                            <strong>Gmail:</strong> ${sub.gmail}<br>
+                            <strong>Password:</strong> ${sub.password}<br>
+                            ${sub.twoFactorKey ? `<strong>2FA:</strong> ${sub.twoFactorKey}` : ''}
+                        ` : sub.type === 'instagram' ? `
+                            <strong>Username:</strong> ${sub.username}<br>
+                            <strong>Gmail:</strong> ${sub.gmail}<br>
+                            <strong>Password:</strong> ${sub.password}
+                        ` : sub.type === 'gmail' ? `
+                            <strong>Gmail:</strong> ${sub.gmail}<br>
+                            <strong>Password:</strong> ${sub.password}
+                        ` : sub.type === 'niva' ? `
+                            <strong>Points:</strong> ${sub.points}<br>
+                            <strong>Reward:</strong> ${sub.reward.toFixed(2)} TK
+                            ${sub.image ? `<br><button class="action-btn btn-primary" onclick="window.adminActions.showImage('${sub.image}')">View Proof</button>` : ''}
+                        ` : sub.type === 'ns' ? `
+                            <strong>Points:</strong> ${sub.points}<br>
+                            <strong>Reward:</strong> ${sub.reward.toFixed(2)} TK
+                            ${sub.image ? `<br><button class="action-btn btn-primary" onclick="window.adminActions.showImage('${sub.image}')">View Proof</button>` : ''}
+                        ` : ''}
+                    </td>
+                    <td data-label="Reward"><strong>${sub.reward.toFixed(2)} TK</strong></td>
+                    <td data-label="Actions">
+                        <div class="action-buttons">
+                            <button class="action-btn btn-success" onclick="window.adminActions.handleSellSubmission('${sub.id}', '${sub.type}', 'approve')">Approve</button>
+                            <button class="action-btn btn-danger" onclick="window.adminActions.handleSellSubmission('${sub.id}', '${sub.type}', 'reject')">Reject</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            
+            mainContent.innerHTML = `<div id="sell-submissions" class="page active">
+                <h3>Pending Sell Submissions</h3>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User & Platform</th>
+                                <th>Details</th>
+                                <th>Reward</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableContent || '<tr><td colspan="4">No pending submissions</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        };
+        
+        const renderMicroJobSubmissions = async () => {
+            mainContent.innerHTML = '<div class="card"><h3>Loading Submissions...</h3></div>';
+            const snap = await db.ref('microJobSubmissions/pending').once('value');
+            
+            let tableContent = '';
+            let submissions = [];
+            snap.forEach(child => { submissions.push({ id: child.key, ...child.val() }); });
+            submissions.sort((a, b) => b.timestamp - a.timestamp);
+            
+            submissions.forEach(sub => {
+                tableContent += `<tr>
+                    <td data-label="User">
+                        <strong>${sub.userName}</strong><br>
+                        <small>Job: ${sub.jobName}</small><br>
+                        <small>${new Date(sub.timestamp).toLocaleString()}</small>
+                    </td>
+                    <td data-label="Details">
+                        ${sub.notes ? `<p><strong>Notes:</strong> ${sub.notes}</p>` : ''}
+                        ${sub.image ? `<button class="action-btn btn-primary" onclick="window.adminActions.showImage('${sub.image}')">View Proof</button>` : ''}
+                    </td>
+                    <td data-label="Reward"><strong>${sub.jobReward} TK</strong></td>
+                    <td data-label="Actions">
+                        <div class="action-buttons">
+                            <button class="action-btn btn-success" onclick="window.adminActions.handleMicroJobSubmission('${sub.id}', 'approve')">Approve</button>
+                            <button class="action-btn btn-danger" onclick="window.adminActions.handleMicroJobSubmission('${sub.id}', 'reject')">Reject</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            
+            mainContent.innerHTML = `<div id="micro-job-submissions" class="page active">
+                <h3>Pending Micro Job Submissions</h3>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User & Job</th>
+                                <th>Details</th>
+                                <th>Reward</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableContent || '<tr><td colspan="4">No pending submissions</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        };
+        
+        const renderSellSettings = async () => {
+            const snap = await db.ref('config').once('value'); 
+            const config = snap.val() || {};
+            
+            mainContent.innerHTML = `<div id="sell-settings" class="page active">
+                <h3>Sell Settings</h3>
+                
+                <!-- Facebook Sell Settings -->
+                <div class="sell-card">
+                    <div class="sell-header">
+                        <div class="sell-icon facebook-icon">
+                            <i class="fab fa-facebook-f"></i>
+                        </div>
+                        <div class="sell-info">
+                            <h3>Facebook Sell Settings</h3>
+                            <p>Configure Facebook ID selling parameters</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Reward Amount (TK)</label>
+                            <input type="number" step="0.01" id="facebook-reward" value="${config.facebookSell?.reward || 0}">
+                        </div>
+                        <div class="form-group">
+                            <label>Default Password</label>
+                            <input type="text" id="facebook-password" value="${config.facebookSell?.password || ''}" placeholder="Default password for accounts">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Instagram Sell Settings -->
+                <div class="sell-card">
+                    <div class="sell-header">
+                        <div class="sell-icon instagram-icon">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                        <div class="sell-info">
+                            <h3>Instagram Sell Settings</h3>
+                            <p>Configure Instagram account selling parameters</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Reward Amount (TK)</label>
+                            <input type="number" step="0.01" id="instagram-reward" value="${config.instagramSell?.reward || 0}">
+                        </div>
+                        <div class="form-group">
+                            <label>Default Password</label>
+                            <input type="text" id="instagram-password" value="${config.instagramSell?.password || ''}" placeholder="Default password for accounts">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gmail Sell Settings -->
+                <div class="sell-card">
+                    <div class="sell-header">
+                        <div class="sell-icon gmail-icon">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <div class="sell-info">
+                            <h3>Gmail Sell Settings</h3>
+                            <p>Configure Gmail account selling parameters</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Reward Amount (TK)</label>
+                            <input type="number" step="0.01" id="gmail-reward" value="${config.gmailSell?.reward || 0}">
+                        </div>
+                        <div class="form-group">
+                            <label>Default Password</label>
+                            <input type="text" id="gmail-password" value="${config.gmailSell?.password || ''}" placeholder="Default password for accounts">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Niva Coin Sell Settings -->
+                <div class="sell-card">
+                    <div class="sell-header">
+                        <div class="sell-icon niva-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="sell-info">
+                            <h3>Niva Coin Sell Settings</h3>
+                            <p>Configure Niva Coin exchange rate and profile</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Exchange Rate (Points:TK)</label>
+                            <input type="text" id="niva-rate" value="${config.nivaSell?.rate || '100:1'}" placeholder="e.g., 100:1">
+                            <small>Format: Points:TK (100:1 means 100 points = 1 TK)</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="niva-username" value="${config.nivaSell?.username || ''}" placeholder="Niva account username">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Profile Picture URL</label>
+                        <input type="text" id="niva-profile-pic" value="${config.nivaSell?.profilePic || ''}" placeholder="URL of profile picture">
+                    </div>
+                </div>
+                
+                <!-- NS Coin Sell Settings -->
+                <div class="sell-card">
+                    <div class="sell-header">
+                        <div class="sell-icon ns-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="sell-info">
+                            <h3>NS Coin Sell Settings</h3>
+                            <p>Configure NS Coin exchange rate and profile</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Exchange Rate (Points:TK)</label>
+                            <input type="text" id="ns-rate" value="${config.nsSell?.rate || '100:1'}" placeholder="e.g., 100:1">
+                            <small>Format: Points:TK (100:1 means 100 points = 1 TK)</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="ns-username" value="${config.nsSell?.username || ''}" placeholder="NS Coin account username">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Profile Picture URL</label>
+                        <input type="text" id="ns-profile-pic" value="${config.nsSell?.profilePic || ''}" placeholder="URL of profile picture">
+                    </div>
+                </div>
+                
+                <button class="action-btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;" onclick="window.adminActions.saveSellSettings()">
+                    <i class="fas fa-save"></i> Save All Sell Settings
+                </button>
+            </div>`;
+        };
+        
+        const renderMicroJobSettings = async () => {
+            const snap = await db.ref('config/microJobs').once('value');
+            let microJobs = [];
+            snap.forEach(child => { microJobs.push({ key: child.key, ...child.val() }); });
+            
+            let jobsList = '';
+            microJobs.forEach(job => {
+                jobsList += `<li>
+                    <div>
+                        <strong>${job.name}</strong> - ${job.reward} TK<br>
+                        <small style="color: var(--text-secondary);">${job.description || 'No description'}</small><br>
+                        <small style="color: var(--text-secondary);">${job.taskUrl ? 'URL: ' + job.taskUrl : 'No URL'}</small>
+                    </div>
+                    <button class="action-btn btn-danger" style="padding: 5px 8px;" onclick="window.adminActions.deleteMicroJob('${job.key}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </li>`;
+            });
+            
+            mainContent.innerHTML = `<div id="micro-job-settings" class="page active">
+                <h3>Micro Job Settings</h3>
+                
+                <div class="card">
+                    <h4>Current Micro Jobs</h4>
+                    ${jobsList ? `<ul class="dynamic-item-list">${jobsList}</ul>` : '<p>No micro jobs found.</p>'}
+                </div>
+                
+                <div class="card">
+                    <h4>Add New Micro Job</h4>
+                    <div class="form-group">
+                        <input id="micro-job-name" placeholder="Job Name (e.g., Follow on Instagram)">
+                    </div>
+                    <div class="form-group">
+                        <textarea id="micro-job-description" placeholder="Job Description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <input id="micro-job-url" placeholder="Task URL (https://...)" type="url">
+                    </div>
+                    <div class="form-group">
+                        <input id="micro-job-reward" type="number" placeholder="Reward Amount">
+                    </div>
+                    <button class="action-btn btn-primary" onclick="window.adminActions.addMicroJob()">Add Micro Job</button>
+                </div>
+            </div>`;
+        };
+        
+        const renderPaymentSettings = async () => {
+            const snap = await db.ref('config').once('value');
+            const config = snap.val() || {};
+            
+            mainContent.innerHTML = `<div id="payment-settings" class="page active">
+                <h3>Payment Settings</h3>
+                
+                <!-- Activation Payment Settings -->
+                <div class="payment-method-card">
+                    <div class="payment-header">
+                        <div class="payment-icon bkash-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="sell-info">
+                            <h3>Activation Payment Settings</h3>
+                            <p>Configure activation payment methods and amounts</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Activation Amount (TK)</label>
+                            <input type="number" step="any" id="activation-amount" value="${config.activationAmount || 20}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>bKash Number</label>
+                            <input type="text" id="bkash-number" value="${config.bkashNumber || ''}" placeholder="bKash mobile number">
+                        </div>
+                        <div class="form-group">
+                            <label>Nagad Number</label>
+                            <input type="text" id="nagad-number" value="${config.nagadNumber || ''}" placeholder="Nagad mobile number">
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="action-btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;" onclick="window.adminActions.savePaymentSettings()">
+                    <i class="fas fa-save"></i> Save Payment Settings
+                </button>
+            </div>`;
+        };
+        
+        const renderPendingActivations = async () => {
+            mainContent.innerHTML = '<div class="card"><h3>Loading Activation Requests...</h3></div>';
+            const snap = await db.ref('activationRequests/pending').orderByChild('timestamp').once('value'); 
+            
+            let requestsHTML = '';
+            let requests = [];
+            snap.forEach(child => { requests.push({ id: child.key, ...child.val() }); });
+            requests.sort((a, b) => b.timestamp - a.timestamp);
+            
+            if (requests.length === 0) {
+                requestsHTML = '<p style="text-align: center; padding: 20px; color: var(--text-secondary);">No pending activation requests.</p>';
+            } else {
+                requests.forEach(req => {
+                    requestsHTML += `
+                    <div class="activation-request">
+                        <div class="activation-info">
+                            <div>
+                                <h4>${req.userName}</h4>
+                                <p>User ID: ${req.userId}</p>
+                                <p>Date: ${new Date(req.timestamp).toLocaleString()}</p>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="action-btn btn-success" onclick="window.adminActions.handleActivationRequest('${req.id}', 'approve')">Approve</button>
+                                <button class="action-btn btn-danger" onclick="window.adminActions.handleActivationRequest('${req.id}', 'reject')">Reject</button>
+                            </div>
+                        </div>
+                        <div class="activation-details">
+                            <div class="activation-field">
+                                <label>Payment Method</label>
+                                <span>${req.method}</span>
+                            </div>
+                            <div class="activation-field">
+                                <label>Amount</label>
+                                <span>${req.amount} TK</span>
+                            </div>
+                            <div class="activation-field">
+                                <label>Transaction ID</label>
+                                <span style="font-family: monospace;">${req.transactionId}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+            
+            mainContent.innerHTML = `<div id="pending-activations" class="page active">
+                <h3>Pending Activation Requests</h3>
+                <div class="card">
+                    ${requestsHTML}
+                </div>
+            </div>`;
+        };
+        
+        const renderWithdrawals = async () => {
+            mainContent.innerHTML = '<div class="card"><h3>Loading Requests...</h3></div>';
+            const snap = await db.ref('withdrawals/pending').orderByChild('timestamp').once('value'); 
+            let tableContent = '';
+            let requests = [];
+            snap.forEach(child => { requests.push(child.val()); });
+            requests.sort((a, b) => b.timestamp - a.timestamp);
+            requests.forEach(req => {
+                tableContent += `<tr>
+                    <td data-label="User">${req.userName}<br><small>${new Date(req.timestamp).toLocaleString()}</small></td>
+                    <td data-label="Amount"><b>${req.amount.toFixed(2)} TK</b><br><small>${req.method} | ${req.account}</small></td>
+                    <td data-label="Actions"><div class="action-buttons"><button class="action-btn btn-success" onclick="window.adminActions.handleWithdrawal('${req.id}', 'approve')">Approve</button><button class="action-btn btn-danger" onclick="window.adminActions.handleWithdrawal('${req.id}', 'reject')">Reject</button></div></td>
+                </tr>`;
+            });
+            mainContent.innerHTML = `<div id="withdrawals" class="page active"><h3>Pending Withdrawals</h3><div class="card"><table><thead><tr><th>User & Date</th><th>Amount & Details</th><th>Actions</th></tr></thead><tbody>${tableContent || '<tr><td colspan=3>No pending requests</td></tr>'}</tbody></table></div></div>`;
+        };
+        
+        const renderWithdrawalHistory = async () => {
+            mainContent.innerHTML = '<div class="card"><h3>Loading History...</h3></div>';
+            const completedSnap = await db.ref('withdrawals/completed').orderByChild('timestamp').limitToLast(100).once('value');
+            const rejectedSnap = await db.ref('withdrawals/rejected').orderByChild('timestamp').limitToLast(100).once('value');
+            let completedRows = '', rejectedRows = '';
+            
+            let completed = [];
+            completedSnap.forEach(child => { completed.push(child.val()); });
+            completed.sort((a, b) => b.timestamp - a.timestamp);
+            completed.forEach(req => { 
+                completedRows += `<tr>
+                    <td data-label="User">${req.userName}</td>
+                    <td data-label="Amount">${req.amount.toFixed(2)} TK</td>
+                    <td data-label="Date">${new Date(req.timestamp).toLocaleDateString()}</td>
+                    <td data-label="Status"><span style="color: var(--success);">Completed</span></td>
+                </tr>`; 
+            });
+
+            let rejected = [];
+            rejectedSnap.forEach(child => { rejected.push(child.val()); });
+            rejected.sort((a, b) => b.timestamp - a.timestamp);
+            rejected.forEach(req => { 
+                rejectedRows += `<tr>
+                    <td data-label="User">${req.userName}</td>
+                    <td data-label="Amount">${req.amount.toFixed(2)} TK</td>
+                    <td data-label="Date">${new Date(req.timestamp).toLocaleDateString()}</td>
+                    <td data-label="Status"><span style="color: var(--danger);">Rejected</span></td>
+                </tr>`; 
+            });
+            
+            mainContent.innerHTML = `
+                <div id="history" class="page active"><h3>Withdrawal History</h3>
+                    <div class="card"><h4>Completed Requests</h4><table><thead><tr><th>User</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody>${completedRows || '<tr><td colspan="4">No completed requests.</td></tr>'}</tbody></table></div>
+                    <div class="card"><h4>Rejected Requests</h4><table><thead><tr><th>User</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody>${rejectedRows || '<tr><td colspan="4">No rejected requests.</td></tr>'}</tbody></table></div>
+                </div>`;
+        };
+
+        const renderSettings = async () => {
+            const snap = await db.ref('config').once('value'); 
+            const config = snap.val() || {};
+            mainContent.innerHTML = `<div id="settings" class="page active"><h3>App Settings</h3>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Bot Username (without @)</label>
+                        <input type="text" id="botUsername" value="${config.botUsername || ''}">
+                    </div>
+                    <hr style="border-color: var(--border);">
+                    <h4>Ad Settings</h4>
+                    <div class="form-group">
+                        <label>Welcome Message</label>
+                        <textarea id="welcomeMessage">${config.welcomeMessage || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Value per Ad</label>
+                        <input type="number" step="any" id="adValue" value="${config.adValue || 0}">
+                    </div>
+                    <div class="form-group">
+                        <label>Referral Bonus</label>
+                        <input type="number" step="any" id="referralBonus" value="${config.referralBonus || 0}">
+                    </div>
+                    <div class="form-group">
+                        <label>Daily Ad Limit</label>
+                        <input type="number" id="dailyAdLimit" value="${config.dailyAdLimit || 0}">
+                    </div>
+                    <div class="form-group">
+                        <label>Ads Before Break</label>
+                        <input type="number" id="adsPerBreak" value="${config.adsPerBreak || 0}">
+                    </div>
+                    <div class="form-group">
+                        <label>Break Duration (Minutes)</label>
+                        <input type="number" id="breakDuration" value="${config.breakDuration || 0}">
+                    </div>
+                    <div class="form-group">
+                        <label>Monetag Zone ID</label>
+                        <input type="text" id="monetagZoneId" value="${config.monetagZoneId || '10389601'}">
+                        <small>The Zone ID for Monetag Ad SDK</small>
+                    </div>
+                    <hr style="border-color: var(--border);">
+                    <h4>Withdrawal Settings</h4>
+                    <div class="form-group">
+                        <label>Minimum Referrals for Withdraw</label>
+                        <input type="number" id="minimumWithdrawReferrals" value="${config.minimumWithdrawReferrals || 0}">
+                    </div>
+                    <div id="withdraw-methods-container"></div>
+                    <button class="action-btn btn-primary" onclick="window.adminActions.addWithdrawMethodField()">+ Add Method</button>
+                    <hr style="margin: 20px 0; border-color: var(--border);">
+                    <button class="action-btn btn-success" style="width:100%; padding:15px;" onclick="window.adminActions.saveSettings()">Save All Settings</button>
+                </div></div>`;
+            renderWithdrawMethods(config.withdrawMethods);
+        };
+        
+        const renderBroadcast = () => {
+             mainContent.innerHTML = `<div id="broadcast" class="page active"><h3>Broadcast Message</h3>
+                <div class="card">
+                    <p>This message will be sent to all users.</p>
+                    <div class="form-group">
+                        <textarea id="broadcast-message" rows="5" placeholder="Your message here..."></textarea>
+                    </div>
+                    <button class="action-btn btn-primary" onclick="window.adminActions.sendBroadcast()">Send Broadcast</button>
+                </div></div>`;
+        };
+
+        const renderWithdrawMethods = (methods) => {
+            const container = document.getElementById('withdraw-methods-container'); 
+            container.innerHTML = '';
+            if (methods) {
+                methods.forEach((method, index) => {
+                    container.innerHTML += `
+                        <div class="withdraw-method-group" data-index="${index}">
+                            <input value="${method.name || ''}" placeholder="Method Name">
+                            <input type="number" step="any" value="${method.min || ''}" placeholder="Min Amount">
+                            <input value="${method.icon || ''}" placeholder="Icon (e.g., wallet)">
+                            <button class="action-btn btn-danger" onclick="this.parentElement.remove()">X</button>
+                        </div>`;
+                });
+            }
+        };
+
+        window.adminActions = {
+            editUserBalance: async (userId, userName) => {
+                const amount = prompt(`Enter amount to ADD or SUBTRACT for ${userName}.\nUse negative value to subtract (e.g., -50).`);
+                if (amount && !isNaN(parseFloat(amount))) { 
+                    try { 
+                        await db.ref(`users/${userId}/balance`).set(firebase.database.ServerValue.increment(parseFloat(amount))); 
+                        alert('Balance updated!'); 
+                        renderUsers(); 
+                    } catch (e) { 
+                        alert('Error.'); 
+                    } 
+                }
+            },
+            
+            toggleUserStatus: async (userId, currentStatus) => {
+                const newStatus = !currentStatus;
+                if (confirm(`Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} this user?`)) {
+                    try {
+                        await db.ref(`users/${userId}/active`).set(newStatus);
+                        alert(`User ${newStatus ? 'activated' : 'deactivated'} successfully!`);
+                        renderUsers();
+                    } catch (e) {
+                        alert('Error updating user status.');
+                    }
+                }
+            },
+            
+            handleWithdrawal: async (reqId, action) => {
+                const reqRef = db.ref(`withdrawals/pending/${reqId}`); 
+                const snap = await reqRef.once('value'); 
+                const request = snap.val();
+                if (!request) { 
+                    alert('Request not found.'); 
+                    return; 
+                }
+                
+                if (action === 'approve') {
+                    // Move to completed - no need to adjust balance as it was already deducted when user requested withdrawal
+                    await db.ref(`withdrawals/completed/${reqId}`).set({ ...request, status: 'completed' });
+                    alert(`Withdrawal approved! Amount has been sent to user.`);
+                } else {
+                    // Reject: Add balance back to user
+                    await db.ref(`users/${request.userId}/balance`).set(
+                        firebase.database.ServerValue.increment(request.amount)
+                    );
+                    await db.ref(`withdrawals/rejected/${reqId}`).set({ ...request, status: 'rejected' });
+                    alert(`Withdrawal rejected. Balance returned to user.`);
+                }
+                
+                await reqRef.remove(); 
+                renderWithdrawals();
+            },
+            
+            handleSellSubmission: async (submissionId, type, action) => {
+                const subRef = db.ref(`sellSubmissions/${type}/pending/${submissionId}`);
+                const snap = await subRef.once('value');
+                const submission = snap.val();
+                
+                if (!submission) { 
+                    alert('Submission not found.'); 
+                    return; 
+                }
+                
+                if (action === 'approve') {
+                    // Check if user is active
+                    const userSnap = await db.ref(`users/${submission.userId}/active`).once('value');
+                    const isActive = userSnap.val();
+                    
+                    if (!isActive) {
+                        alert('User is not active. Cannot approve submission.');
+                        return;
+                    }
+                    
+                    // Add reward to user's balance
+                    await db.ref(`users/${submission.userId}/balance`).set(
+                        firebase.database.ServerValue.increment(submission.reward)
+                    );
+                    
+                    // Move to approved
+                    await db.ref(`sellSubmissions/${type}/approved/${submissionId}`).set({ ...submission, status: 'approved' });
+                    
+                    alert(`Submission approved! ${submission.reward} TK added to user's balance.`);
+                } else {
+                    // Move to rejected
+                    await db.ref(`sellSubmissions/${type}/rejected/${submissionId}`).set({ ...submission, status: 'rejected' });
+                    alert('Submission rejected.');
+                }
+                
+                await subRef.remove();
+                renderSellSubmissions();
+            },
+            
+            handleMicroJobSubmission: async (submissionId, action) => {
+                const subRef = db.ref(`microJobSubmissions/pending/${submissionId}`);
+                const snap = await subRef.once('value');
+                const submission = snap.val();
+                
+                if (!submission) { 
+                    alert('Submission not found.'); 
+                    return; 
+                }
+                
+                const status = action === 'approve' ? 'approved' : 'rejected';
+                
+                if (action === 'approve') {
+                    // Check if user is active
+                    const userSnap = await db.ref(`users/${submission.userId}/active`).once('value');
+                    const isActive = userSnap.val();
+                    
+                    if (!isActive) {
+                        alert('User is not active. Cannot approve submission.');
+                        return;
+                    }
+                    
+                    // Add reward to user's balance
+                    await db.ref(`users/${submission.userId}/balance`).set(
+                        firebase.database.ServerValue.increment(submission.jobReward)
+                    );
+                    
+                    // Add to user's completed jobs
+                    await db.ref(`users/${submission.userId}/completedMicroJobs/${submission.jobId}`).set({
+                        ...submission,
+                        status: 'approved',
+                        approvedAt: Date.now()
+                    });
+                    
+                    // Remove from user's pending submissions
+                    await db.ref(`users/${submission.userId}/pendingMicroJobs/${submission.jobId}`).remove();
+                    
+                    alert(`Submission approved! ${submission.jobReward} TK added to user's balance.`);
+                } else {
+                    // Remove from user's pending submissions
+                    await db.ref(`users/${submission.userId}/pendingMicroJobs/${submission.jobId}`).remove();
+                    alert('Submission rejected.');
+                }
+                
+                // Move submission to appropriate folder
+                await db.ref(`microJobSubmissions/${status}/${submissionId}`).set({ ...submission, status });
+                await subRef.remove();
+                
+                renderMicroJobSubmissions();
+            },
+            
+            handleActivationRequest: async (requestId, action) => {
+                const reqRef = db.ref(`activationRequests/pending/${requestId}`);
+                const snap = await reqRef.once('value');
+                const request = snap.val();
+                
+                if (!request) { 
+                    alert('Request not found.'); 
+                    return; 
+                }
+                
+                if (action === 'approve') {
+                    // Activate the user
+                    await db.ref(`users/${request.userId}/active`).set(true);
+                    
+                    // Check if user has referrer and give referral bonus
+                    const userSnap = await db.ref(`users/${request.userId}`).once('value');
+                    const userData = userSnap.val();
+                    
+                    if (userData.referredBy) {
+                        const referrerId = userData.referredBy;
+                        const referrerSnap = await db.ref(`users/${referrerId}`).once('value');
+                        const referrerData = referrerSnap.val();
+                        
+                        // Check if referrer is active and hasn't received bonus for this user
+                        if (referrerData && referrerData.active) {
+                            const referralBonus = await db.ref('config/referralBonus').once('value');
+                            const bonusAmount = parseFloat(referralBonus.val()) || 0;
+                            
+                            if (bonusAmount > 0) {
+                                // Check if bonus already given for this referral
+                                const referralRecordSnap = await db.ref(`referralBonuses/${referrerId}/${request.userId}`).once('value');
+                                
+                                if (!referralRecordSnap.exists()) {
+                                    // Give referral bonus
+                                    await db.ref(`users/${referrerId}/balance`).set(
+                                        firebase.database.ServerValue.increment(bonusAmount)
+                                    );
+                                    
+                                    await db.ref(`users/${referrerId}/referrals`).set(
+                                        firebase.database.ServerValue.increment(1)
+                                    );
+                                    
+                                    // Record the bonus
+                                    await db.ref(`referralBonuses/${referrerId}/${request.userId}`).set({
+                                        amount: bonusAmount,
+                                        timestamp: Date.now(),
+                                        referredUser: request.userId
+                                    });
+                                    
+                                    // Add to referrer's total earned
+                                    await db.ref(`users/${referrerId}/totalEarned`).set(
+                                        firebase.database.ServerValue.increment(bonusAmount)
+                                    );
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Add bonus to new user's balance
+                    await db.ref(`users/${request.userId}/balance`).set(
+                        firebase.database.ServerValue.increment(10) // 10 TK bonus for activation
+                    );
+                    
+                    alert('User activated successfully with bonus!');
+                } else {
+                    alert('Activation request rejected.');
+                }
+                
+                // Move to appropriate folder
+                const status = action === 'approve' ? 'approved' : 'rejected';
+                await db.ref(`activationRequests/${status}/${requestId}`).set({ ...request, status });
+                await reqRef.remove();
+                
+                renderPendingActivations();
+            },
+            
+            showImage: (imageUrl) => {
+                modalImage.src = imageUrl;
+                imageModal.style.display = 'block';
+            },
+            
+            addMicroJob: async () => {
+                const data = { 
+                    name: document.getElementById('micro-job-name').value, 
+                    description: document.getElementById('micro-job-description').value,
+                    taskUrl: document.getElementById('micro-job-url').value,
+                    reward: parseFloat(document.getElementById('micro-job-reward').value)
+                };
+                if (!data.name || !data.reward) { 
+                    alert('Name and Reward are required.'); 
+                    return; 
+                }
+                await db.ref('config/microJobs').push(data); 
+                alert('Micro job added!'); 
+                renderMicroJobSettings();
+            },
+            
+            deleteMicroJob: async (key) => {
+                if (confirm(`Are you sure you want to delete this micro job?`)) { 
+                    await db.ref(`config/microJobs/${key}`).remove(); 
+                    alert('Micro job deleted.'); 
+                    renderMicroJobSettings(); 
+                }
+            },
+            
+            addWithdrawMethodField: () => {
+                 document.getElementById('withdraw-methods-container').innerHTML += `
+                    <div class="withdraw-method-group">
+                        <input placeholder="Method Name">
+                        <input type="number" placeholder="Min Amount">
+                        <input placeholder="Icon (e.g., wallet)">
+                        <button class="action-btn btn-danger" onclick="this.parentElement.remove()">X</button>
+                    </div>`;
+            },
+            
+            saveSellSettings: async () => {
+                const settings = {
+                    facebookSell: {
+                        reward: parseFloat(document.getElementById('facebook-reward').value) || 0,
+                        password: document.getElementById('facebook-password').value || ''
+                    },
+                    instagramSell: {
+                        reward: parseFloat(document.getElementById('instagram-reward').value) || 0,
+                        password: document.getElementById('instagram-password').value || ''
+                    },
+                    gmailSell: {
+                        reward: parseFloat(document.getElementById('gmail-reward').value) || 0,
+                        password: document.getElementById('gmail-password').value || ''
+                    },
+                    nivaSell: {
+                        rate: document.getElementById('niva-rate').value || '100:1',
+                        username: document.getElementById('niva-username').value || '',
+                        profilePic: document.getElementById('niva-profile-pic').value || ''
+                    },
+                    nsSell: {
+                        rate: document.getElementById('ns-rate').value || '100:1',
+                        username: document.getElementById('ns-username').value || '',
+                        profilePic: document.getElementById('ns-profile-pic').value || ''
+                    }
+                };
+                
+                await db.ref('config').update(settings); 
+                alert('Sell settings saved successfully!');
+            },
+            
+            savePaymentSettings: async () => {
+                const settings = {
+                    activationAmount: parseFloat(document.getElementById('activation-amount').value) || 20,
+                    bkashNumber: document.getElementById('bkash-number').value || '',
+                    nagadNumber: document.getElementById('nagad-number').value || ''
+                };
+                
+                await db.ref('config').update(settings); 
+                alert('Payment settings saved successfully!');
+            },
+            
+            saveSettings: async () => {
+                const withdrawMethods = [];
+                document.querySelectorAll('.withdraw-method-group').forEach(group => {
+                    const name = group.children[0].value; 
+                    const min = parseFloat(group.children[1].value);
+                    const icon = group.children[2].value || 'wallet';
+                    if (name && min) { 
+                        withdrawMethods.push({ name, min, icon }); 
+                    }
+                });
+                const settings = {
+                    botUsername: document.getElementById('botUsername').value,
+                    welcomeMessage: document.getElementById('welcomeMessage').value,
+                    adValue: parseFloat(document.getElementById('adValue').value) || 0,
+                    referralBonus: parseFloat(document.getElementById('referralBonus').value) || 0,
+                    dailyAdLimit: parseInt(document.getElementById('dailyAdLimit').value) || 0,
+                    adsPerBreak: parseInt(document.getElementById('adsPerBreak').value) || 0,
+                    breakDuration: parseInt(document.getElementById('breakDuration').value) || 0,
+                    monetagZoneId: document.getElementById('monetagZoneId').value || '10389601',
+                    minimumWithdrawReferrals: parseInt(document.getElementById('minimumWithdrawReferrals').value) || 0,
+                    withdrawMethods: withdrawMethods
+                };
+                await db.ref('config').update(settings); 
+                alert('Settings saved successfully!');
+            },
+            
+            sendBroadcast: async () => {
+                const message = document.getElementById('broadcast-message').value;
+                if (!message || !confirm('Are you sure you want to send this broadcast to all users?')) { 
+                    return; 
+                }
+                await db.ref('broadcastQueue').push({ 
+                    message, 
+                    timestamp: Date.now(), 
+                    status: 'pending' 
+                });
+                alert('Broadcast has been added to the queue.');
+                document.getElementById('broadcast-message').value = '';
+            }
+        };
+
+        const setupNavigation = () => {
+            const navLinks = document.querySelectorAll('.nav-menu li');
+            const pageMap = { 
+                dashboard: renderDashboard, 
+                users: renderUsers, 
+                'sell-submissions': renderSellSubmissions,
+                'micro-job-submissions': renderMicroJobSubmissions,
+                'sell-settings': renderSellSettings,
+                'micro-job-settings': renderMicroJobSettings,
+                'payment-settings': renderPaymentSettings,
+                'pending-activations': renderPendingActivations,
+                withdrawals: renderWithdrawals, 
+                history: renderWithdrawalHistory, 
+                settings: renderSettings, 
+                broadcast: renderBroadcast 
+            };
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const pageKey = e.currentTarget.dataset.page;
+                    if (pageKey) {
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        e.currentTarget.classList.add('active');
+                        pageTitle.textContent = e.currentTarget.textContent.trim();
+                        pageMap[pageKey]();
+                        sidebar.classList.remove('open'); 
+                        overlay.classList.remove('show');
+                    }
+                });
+            });
+        };
+        
+        const setupMobileMenu = () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const closeBtn = document.querySelector('#sidebar .close-btn');
+            menuToggle.addEventListener('click', () => { 
+                sidebar.classList.add('open'); 
+                overlay.classList.add('show'); 
+            });
+            closeBtn.addEventListener('click', () => { 
+                sidebar.classList.remove('open'); 
+                overlay.classList.remove('show'); 
+            });
+            overlay.addEventListener('click', () => { 
+                sidebar.classList.remove('open'); 
+                overlay.classList.remove('show'); 
+            });
+        };
+
+        const initAdminPanel = () => { 
+            setupNavigation(); 
+            setupMobileMenu(); 
+            renderDashboard(); 
+        };
+        
+        initAdminPanel();
+    });
+    </script>
+</body>
+</html>
