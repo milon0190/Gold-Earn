@@ -3256,9 +3256,10 @@
                     
                     // Show activation card if account is not active
                     if (!isAccountActive) {
-                        showActivationCard();
-                        inactiveOverlay.style.display = 'flex';
-                    }
+    window._inactiveOverlayClosed = false;
+    showActivationCard();
+    inactiveOverlay.style.display = 'flex';
+}
                     
                 }, 500);
                 
@@ -3367,12 +3368,15 @@
                     
                     // Update inactive overlay
                     if (!isAccountActive) {
-                        inactiveOverlay.style.display = 'flex';
-                        showActivationCard();
-                    } else {
-                        inactiveOverlay.style.display = 'none';
-                        document.getElementById('activation-card-container').innerHTML = '';
-                    }
+    showActivationCard();
+    if (!window._inactiveOverlayClosed) {
+        inactiveOverlay.style.display = 'flex';
+    }
+} else {
+    inactiveOverlay.style.display = 'none';
+    window._inactiveOverlayClosed = false;
+    document.getElementById('activation-card-container').innerHTML = '';
+}
                 }
             });
         }
@@ -3791,8 +3795,9 @@
             
             // Inactive overlay close button
             document.getElementById('close-inactive-btn').addEventListener('click', () => {
-                inactiveOverlay.style.display = 'none';
-            });
+    inactiveOverlay.style.display = 'none';
+    window._inactiveOverlayClosed = true;
+});
             
             // Inactive overlay activation button
             document.getElementById('activate-account-btn').addEventListener('click', () => {
